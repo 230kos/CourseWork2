@@ -1,36 +1,34 @@
-# src/models/vacancy.py
-from typing import List, Dict, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass(order=True)
 class Vacancy:
     """Класс для представления вакансии"""
-    __slots__ = ['name', 'url', 'salary_from', 'salary_to', 'currency', 'description', 'requirements']
 
     name: str
     url: str
-    salary_from: int = field(default=0)
-    salary_to: int = field(default=0)
-    currency: str = field(default="RUR")
-    description: str = field(default="")
-    requirements: str = field(default="")
+    salary_from: int = 0
+    salary_to: int = 0
+    currency: str = "RUR"
+    description: str = ""
+    requirements: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Валидация данных после инициализации"""
-        self.__validate_salary()
-        self.__validate_url()
+        self._validate_salary()
+        self._validate_url()
 
-    def __validate_salary(self) -> None:
+    def _validate_salary(self) -> None:
         """Приватный метод для валидации зарплаты"""
         if self.salary_from < 0:
             self.salary_from = 0
         if self.salary_to < 0:
             self.salary_to = 0
 
-    def __validate_url(self) -> None:
+    def _validate_url(self) -> None:
         """Приватный метод для валидации URL"""
-        if not self.url.startswith(('http://', 'https://')):
+        if not self.url.startswith(("http://", "https://")):
             self.url = f"https://{self.url}"
 
     @property
@@ -41,7 +39,7 @@ class Vacancy:
         return self.salary_from or self.salary_to or 0
 
     @classmethod
-    def cast_to_object_list(cls, vacancies_data: List[Dict]) -> List['Vacancy']:
+    def cast_to_object_list(cls, vacancies_data: List[Dict]) -> List["Vacancy"]:
         """
         Преобразование списка словарей в список объектов Vacancy
 
@@ -50,28 +48,30 @@ class Vacancy:
         """
         vacancies = []
         for vacancy in vacancies_data:
-            salary = vacancy.get('salary')
+            salary = vacancy.get("salary")
             if salary:
-                salary_from = salary.get('from') or 0
-                salary_to = salary.get('to') or 0
-                currency = salary.get('currency', 'RUR')
+                salary_from = salary.get("from") or 0
+                salary_to = salary.get("to") or 0
+                currency = salary.get("currency", "RUR")
             else:
                 salary_from = salary_to = 0
-                currency = 'RUR'
+                currency = "RUR"
 
-            snippet = vacancy.get('snippet', {})
-            description = snippet.get('responsibility', '')
-            requirements = snippet.get('requirement', '')
+            snippet = vacancy.get("snippet", {})
+            description = snippet.get("responsibility", "") or ""
+            requirements = snippet.get("requirement", "") or ""
 
-            vacancies.append(cls(
-                name=vacancy.get('name', ''),
-                url=vacancy.get('alternate_url', ''),
-                salary_from=salary_from,
-                salary_to=salary_to,
-                currency=currency,
-                description=description,
-                requirements=requirements
-            ))
+            vacancies.append(
+                cls(
+                    name=vacancy.get("name", ""),
+                    url=vacancy.get("alternate_url", ""),
+                    salary_from=salary_from,
+                    salary_to=salary_to,
+                    currency=currency,
+                    description=description,
+                    requirements=requirements,
+                )
+            )
         return vacancies
 
     def __str__(self) -> str:
@@ -80,8 +80,10 @@ class Vacancy:
             salary_info += f" до {self.salary_to}" if salary_info else f"до {self.salary_to}"
         salary_info += f" {self.currency}" if salary_info else "Зарплата не указана"
 
-        return (f"Вакансия: {self.name}\n"
-                f"Зарплата: {salary_info}\n"
-                f"Описание: {self.description[:100]}...\n"
-                f"Требования: {self.requirements[:100]}...\n"
-                f"Ссылка: {self.url}\n")
+        return (
+            f"Вакансия: {self.name}\n"
+            f"Зарплата: {salary_info}\n"
+            f"Описание: {self.description[:100]}...\n"
+            f"Требования: {self.requirements[:100]}...\n"
+            f"Ссылка: {self.url}\n"
+        )
